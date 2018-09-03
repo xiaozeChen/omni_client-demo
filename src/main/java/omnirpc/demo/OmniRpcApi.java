@@ -2,7 +2,6 @@ package omnirpc.demo;
 
 import foundation.omni.rpc.SmartPropertyListInfo;
 import omnirpc.demo.model.*;
-import org.bitcoinj.core.TransactionOutput;
 import retrofit2.http.*;
 
 import java.util.List;
@@ -41,15 +40,17 @@ public interface OmniRpcApi {
     @GET("/omni/getBalance")
     CompletableFuture<OmniResponse<CurrencyBean>> getBalance(@Query("address") String address,
                                                              @Query("currencyId") long currencyId);
-     /**
+
+    /**
      * 获取omni指定币种的余额，usdt id为31，名称为TetherUS
      *
      * @param txId
-      * @param vOut
-      * @return
+     * @param vOut
+     * @return
      */
     @GET("/omni/getTxOut")
     CompletableFuture<OmniResponse<TxOutPut>> getTxOut(@Query("txId") String txId, @Query("vOut") long vOut);
+
     /**
      * 添加需要监听的地址
      *
@@ -60,13 +61,22 @@ public interface OmniRpcApi {
     CompletableFuture<OmniResponse<UserCoinAddress>> addAddress(@Body UserCoinAddress userCoinAddress);
 
     /**
-     * 创建一笔未签名交易
+     * 创建一笔未签名USDT交易
      *
      * @param unSignRtxBean
      * @return
      */
-    @POST("/omni/createTransaction")
-    CompletableFuture<OmniResponse<OmniRawTransaction>> createTransaction(@Body RequestCreateUnSignRtxBean unSignRtxBean);
+    @POST("/omni/createUsdtTransaction")
+    CompletableFuture<OmniResponse<RawTransaction>> createUsdtTransaction(@Body RequestCreateUnSignRtxBean unSignRtxBean);
+
+    /**
+     * 创建一笔未签名BTC交易
+     *
+     * @param unSignRtxBean
+     * @return
+     */
+    @POST("/omni/createBtcTransaction")
+    CompletableFuture<OmniResponse<RawTransaction>> createBtcTransaction(@Body RequestCreateUnSignRtxBean unSignRtxBean);
 
     /**
      * 发送一笔签名交易

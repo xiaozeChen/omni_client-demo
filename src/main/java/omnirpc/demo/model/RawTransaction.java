@@ -6,7 +6,7 @@ import java.util.List;
  * @author chenxz
  * @date 2018/9/3
  */
-public class OmniRawTransaction {
+public class RawTransaction {
     /**
      * txid : df10f9ca50897a43f2cdd1c54695176786aa0ea7050a31262d74a10077502037
      * hash : df10f9ca50897a43f2cdd1c54695176786aa0ea7050a31262d74a10077502037
@@ -93,7 +93,7 @@ public class OmniRawTransaction {
 
     @Override
     public String toString() {
-        return "OmniRawTransaction{" +
+        return "RawTransaction{" +
                 "txid='" + txid + '\'' +
                 ", hash='" + hash + '\'' +
                 ", size=" + size +

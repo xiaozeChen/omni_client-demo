@@ -11,9 +11,9 @@ public class RequestCreateUnSignRtxBean {
     public RequestCreateUnSignRtxBean() {
     }
 
-    private long amount;
+    private String amount;
 
-    public RequestCreateUnSignRtxBean(String from, String to, long currencyId, long amount) {
+    public RequestCreateUnSignRtxBean(String from, String to, long currencyId, String amount) {
         this.from = from;
         this.to = to;
         this.currencyId = currencyId;
