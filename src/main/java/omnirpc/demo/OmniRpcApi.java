@@ -41,16 +41,15 @@ public interface OmniRpcApi {
     @GET("/omni/getBalance")
     CompletableFuture<OmniResponse<CurrencyBean>> getBalance(@Query("address") String address,
                                                              @Query("currencyId") long currencyId);
-
-    /**
-     * 获取用户未消费数据
+     /**
+     * 获取omni指定币种的余额，usdt id为31，名称为TetherUS
      *
-     * @param address
-     * @return
+     * @param txId
+      * @param vOut
+      * @return
      */
-    @GET("/omni/getBalance")
-    CompletableFuture<OmniResponse<List<TransactionOutput>>> getUnspent(@Query("address") String address);
-
+    @GET("/omni/getTxOut")
+    CompletableFuture<OmniResponse<TxOutPut>> getTxOut(@Query("txId") String txId, @Query("vOut") long vOut);
     /**
      * 添加需要监听的地址
      *
@@ -67,7 +66,7 @@ public interface OmniRpcApi {
      * @return
      */
     @POST("/omni/createTransaction")
-    CompletableFuture<OmniResponse<String>> createTransaction(@Body RequestCreateUnSignRtxBean unSignRtxBean);
+    CompletableFuture<OmniResponse<OmniRawTransaction>> createTransaction(@Body RequestCreateUnSignRtxBean unSignRtxBean);
 
     /**
      * 发送一笔签名交易

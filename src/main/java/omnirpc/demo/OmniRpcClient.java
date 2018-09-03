@@ -1,27 +1,25 @@
 package omnirpc.demo;
 
+import com.google.gson.Gson;
 import foundation.omni.CurrencyID;
-import foundation.omni.OmniDivisibleValue;
-import foundation.omni.OmniValue;
 import foundation.omni.rpc.SmartPropertyListInfo;
-import foundation.omni.tx.OmniTxBuilder;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
 import omnirpc.demo.model.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.Address;
-import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
 import retrofit2.Retrofit;
 import retrofit2.adapter.java8.Java8CallAdapterFactory;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class OmniRpcClient {
-    public static final HttpUrl OMNI_RPC_URL = HttpUrl.parse("http://127.0.0.1:8080");
+    public static final HttpUrl OMNI_RPC_URL = HttpUrl.parse("http://192.168.31.50:8080");
     private static final int CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
     private static final int READ_TIMEOUT_MILLIS = 120 * 1000; // 120s (long enough to load USDT rich list)
     private static final int SUCCEED_CODE = 10000;//成功返回码
@@ -43,6 +41,7 @@ public class OmniRpcClient {
 
     public static void main(String[] args) {
         OmniRpcClient omniRpcClient = OmniRpcClient.getInstance();
+        new Context(netParams);
         Scanner sc = new Scanner(System.in);
         for (; ; ) {
             System.out.println("请输入要查询的地址");
@@ -62,6 +61,7 @@ public class OmniRpcClient {
             System.out.println("是否发送交易y/n)");
             String yn = sc.nextLine().trim();
             if ((!yn.equalsIgnoreCase("yes")) && (!yn.equalsIgnoreCase("y"))) {
+                break;
             } else {
                 String txId = omniRpcClient.pushTransaction(rawTxStr);
                 System.out.println("txId=" + txId);
@@ -199,6 +199,28 @@ public class OmniRpcClient {
     }
 
     /**
+     * 添加监听地址
+     *
+     * @param txId
+     * @param vOut
+     */
+    public TxOutPut getTxOut(String txId, long vOut) {
+        TxOutPut data = null;
+        try {
+            OmniResponse<TxOutPut> response = service.getTxOut(txId, vOut).get();
+            if (response.getCode() == SUCCEED_CODE) {
+                data = response.getData();
+                log.info("data=" + data.toString());
+            } else {
+                log.info(response.getMsg());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    /**
      * 创建一笔交易-->签名-->获取hex值 后发送
      *
      * @param rawTransaction 交易哈希
@@ -221,38 +243,6 @@ public class OmniRpcClient {
         return txId;
     }
 
-    /**
-     * 创建一笔交易-->签名-->获取hex值 后发送
-     *
-     * @param fromKey
-     * @param from
-     * @param to
-     * @param currencyID
-     * @param amount
-     * @param fee
-     * @return 交易哈希
-     * @throws Exception
-     */
-    public String createTransaction(ECKey fromKey, String from, String to, CurrencyID currencyID, BigDecimal amount, long fee) {
-        try {
-            //从rpc服务器获取未消费列表
-            OmniResponse<List<TransactionOutput>> response = service.getUnspent(from).get();
-            if (response.getCode() == SUCCEED_CODE) {
-                List<TransactionOutput> utxos = response.getData();
-                OmniTxBuilder omniTxBuilder = new OmniTxBuilder(netParams, new MyFeeCalculator(fee));
-                OmniValue value = OmniDivisibleValue.of(amount);
-                Address addressTo = Address.fromBase58(netParams, to);
-                Transaction signedSimpleSend = omniTxBuilder.createSignedSimpleSend(fromKey, utxos, addressTo, currencyID, value);
-                log.info("omniTransaction=" + signedSimpleSend.toString());
-                return UsdtUtil.toHexString(signedSimpleSend.bitcoinSerialize());
-            } else {
-                log.info(response.getMsg());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     /**
      * 创建一笔交易-->签名-->获取hex值 后发送
@@ -268,28 +258,37 @@ public class OmniRpcClient {
     public String createTransaction(ECKey fromKey, String from, String to, CurrencyID currencyID, BigDecimal amount) {
         try {
             //从rpc服务器获取未签名的交易
-            OmniResponse<String> response = service
-                    .createTransaction(new RequestCreateUnSignRtxBean(from, to, currencyID.getValue(), amount.longValue()))
-                    .get();
+            OmniResponse<OmniRawTransaction> response = service
+                    .createTransaction(new RequestCreateUnSignRtxBean(from, to, currencyID.getValue(), amount.longValue())).get();
             if (response.getCode() == SUCCEED_CODE) {
-                String rawTxStr = response.getData();
-                byte[] rawTxHex = UsdtUtil.decodeHex(rawTxStr);
-                Transaction tx = new Transaction(netParams, rawTxHex);
+                OmniRawTransaction omniRawTransaction = response.getData();
+                System.out.println("签名前：" + omniRawTransaction.toString());
+                Transaction usdt_tx = new Transaction(netParams);
                 // 签名交易
-                for (int i = 0; i < tx.getInputs().size(); i++) {
-                    TransactionInput input = tx.getInput(i);
-                    Script scriptPubKey = input.getConnectedOutput().getScriptPubKey();
-                    TransactionSignature signature = tx.calculateSignature(i, fromKey, scriptPubKey, Transaction.SigHash.ALL, false);
-                    if (scriptPubKey.isSentToRawPubKey())
-                        input.setScriptSig(ScriptBuilder.createInputScript(signature));
-                    else if (scriptPubKey.isSentToAddress())
-                        input.setScriptSig(ScriptBuilder.createInputScript(signature, fromKey));
-                    else
-                        throw new ScriptException("Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
-
+                List<OmniRawTransaction.Vin> vin = omniRawTransaction.getVin();
+                List<OmniRawTransaction.Vout> vout = omniRawTransaction.getVout();
+                for (OmniRawTransaction.Vout out : vout) {
+                    if (out.getScriptPubKey().getAddresses() == null) {
+                        byte[] pubkeyBytes = Utils.HEX.decode(out.getScriptPubKey().getHex());
+                        Script script = new Script(pubkeyBytes);
+                        usdt_tx.addOutput(Coin.valueOf(new Double(out.getValue() * 1.0E8D).longValue()), script);
+                    } else {
+                        usdt_tx.addOutput(Coin.valueOf(new Double(out.getValue() * 1.0E8D).longValue()),
+                                Address.fromBase58(netParams, out.getScriptPubKey().getAddresses().get(0)));
+                    }
                 }
-                log.info("omniTransaction=" + tx.toString());
-                return UsdtUtil.toHexString(tx.bitcoinSerialize());
+                for (OmniRawTransaction.Vin in : vin) {
+                    TxOutPut txOut = getTxOut(in.getTxid(), (long) in.getVout());
+                    byte[] pubkeyBytes = Utils.HEX.decode(txOut.getScriptPubKey().getHex());
+                    Script script = new Script(pubkeyBytes);
+                    TransactionOutPoint outPoint = new TransactionOutPoint(netParams, in.getVout(), Sha256Hash.wrap(in.getTxid()));
+                    usdt_tx.addSignedInput(outPoint, script, fromKey, Transaction.SigHash.ALL, true);
+                }
+                usdt_tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
+                usdt_tx.setPurpose(Transaction.Purpose.USER_PAYMENT);
+                String txHash = UsdtUtil.toHexString(usdt_tx.bitcoinSerialize());
+                System.out.println("哈希值：" + txHash);
+                return txHash;
             } else {
                 log.info(response.getMsg());
             }
