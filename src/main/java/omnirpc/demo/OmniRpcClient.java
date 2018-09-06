@@ -39,6 +39,14 @@ public class OmniRpcClient {
     public static void main(String[] args) {
         OmniRpcClient omniRpcClient = OmniRpcClient.getInstance();
         new Context(netParams);
+        //创建地址
+//        ECKey ecKey = new ECKey();
+//        String privateKey = ecKey.getPrivateKeyAsWiF(netParams);
+//        String publicKey = ecKey.getPublicKeyAsHex();
+//        System.out.println("privateKey=" + privateKey);
+//        System.out.println("publicKey=" + publicKey);
+//        Address address = ecKey.toAddress(netParams);
+//        System.out.println("Base58=" + address.toBase58());
         Scanner sc = new Scanner(System.in);
         for (; ; ) {
             System.out.println("请输入要查询的地址");
@@ -58,7 +66,7 @@ public class OmniRpcClient {
             String rawTxStr;
             if ("BTC".equalsIgnoreCase(type)) {
                 rawTxStr = omniRpcClient.createBtcTransaction(fromKey, from, to, amount);
-            } else if ("USDT".equalsIgnoreCase(type)) {
+            } else if ("OMNI".equalsIgnoreCase(type)) {
                 rawTxStr = omniRpcClient.createUsdtTransaction(fromKey, from, to, CurrencyID.of(31), amount);
             } else {
                 System.out.println("别这样让我无所适从。。。。");
@@ -264,6 +272,7 @@ public class OmniRpcClient {
      */
     public String createUsdtTransaction(ECKey fromKey, String from, String to, CurrencyID currencyID, BigDecimal amount) {
         try {
+            System.out.println("创建一笔OMNI交易");
             //从rpc服务器获取未签名的交易
             OmniResponse<RawTransaction> response = service.createUsdtTransaction(new RequestCreateUnSignRtxBean(from,
                     to, currencyID.getValue(), amount.toPlainString())).get();
@@ -294,6 +303,7 @@ public class OmniRpcClient {
      */
     public String createBtcTransaction(ECKey fromKey, String from, String to, BigDecimal amount) {
         try {
+            System.out.println("创建一笔BTC交易");
             //从rpc服务器获取未签名的交易
             OmniResponse<RawTransaction> response = service.createBtcTransaction(new RequestCreateUnSignRtxBean(from,
                     to, 0, amount.toPlainString())).get();
@@ -314,7 +324,7 @@ public class OmniRpcClient {
 
     private String signTransactionByKey(ECKey fromKey, RawTransaction rawTransaction) throws Exception {
         Transaction usdt_tx = new Transaction(netParams);
-        // 签名交易
+        //签名交易
         List<RawTransaction.Vin> vin = rawTransaction.getVin();
         List<RawTransaction.Vout> vout = rawTransaction.getVout();
         for (RawTransaction.Vout out : vout) {
