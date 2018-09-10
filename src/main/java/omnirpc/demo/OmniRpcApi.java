@@ -67,7 +67,7 @@ public interface OmniRpcApi {
      * @return
      */
     @POST("/omni/createUsdtTransaction")
-    CompletableFuture<OmniResponse<RawTransaction>> createUsdtTransaction(@Body RequestCreateUnSignRtxBean unSignRtxBean);
+    CompletableFuture<OmniResponse<RawTransaction>> createUsdtTransaction(@Body RequestUnSignRtxBean unSignRtxBean);
 
     /**
      * 创建一笔未签名BTC交易
@@ -76,7 +76,7 @@ public interface OmniRpcApi {
      * @return
      */
     @POST("/omni/createBtcTransaction")
-    CompletableFuture<OmniResponse<RawTransaction>> createBtcTransaction(@Body RequestCreateUnSignRtxBean unSignRtxBean);
+    CompletableFuture<OmniResponse<RawTransaction>> createBtcTransaction(@Body RequestUnSignRtxBean unSignRtxBean);
 
     /**
      * 发送一笔签名交易
@@ -85,7 +85,7 @@ public interface OmniRpcApi {
      * @return
      */
     @POST("/omni/pushTransaction")
-    CompletableFuture<OmniResponse<String>> pushTransaction(@Body RequestPushSignRtxBean signRtxBean);
+    CompletableFuture<OmniResponse<String>> pushTransaction(@Body PushSignRtxBean signRtxBean);
 
 
 }

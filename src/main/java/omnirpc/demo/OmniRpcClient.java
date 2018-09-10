@@ -64,21 +64,23 @@ public class OmniRpcClient {
             System.out.println("请输入要转账类型BTC/OMNI");
             String type = sc.nextLine().trim();
             String rawTxStr;
+            PushSignRtxBean transaction;
             if ("BTC".equalsIgnoreCase(type)) {
-                rawTxStr = omniRpcClient.createBtcTransaction(fromKey, from, to, amount);
+                transaction = omniRpcClient.createBtcTransaction(fromKey, from, to, amount);
             } else if ("OMNI".equalsIgnoreCase(type)) {
-                rawTxStr = omniRpcClient.createUsdtTransaction(fromKey, from, to, CurrencyID.of(31), amount);
+                transaction = omniRpcClient.createUsdtTransaction(fromKey, from, to, CurrencyID.of(31), amount);
             } else {
                 System.out.println("别这样让我无所适从。。。。");
                 break;
             }
+            rawTxStr = transaction.getRawTx();
             System.out.println("rawTxStr:" + rawTxStr);
             System.out.println("是否发送交易y/n)");
             String yn = sc.nextLine().trim();
             if ((!yn.equalsIgnoreCase("yes")) && (!yn.equalsIgnoreCase("y"))) {
                 break;
             } else {
-                String txId = omniRpcClient.pushTransaction(rawTxStr);
+                String txId = omniRpcClient.pushTransaction(transaction);
                 System.out.println("txId=" + txId);
             }
             break;
@@ -238,15 +240,15 @@ public class OmniRpcClient {
     /**
      * 创建一笔交易-->签名-->获取hex值 后发送
      *
-     * @param rawTransaction 交易哈希
+     * @param signRtxBean 交易数据
      * @return 交易id
      */
-    public String pushTransaction(String rawTransaction) {
+    public String pushTransaction(PushSignRtxBean signRtxBean) {
         String txId = null;
         try {
             //发送一笔签名交易
             OmniResponse<String> response = service
-                    .pushTransaction(new RequestPushSignRtxBean(rawTransaction))
+                    .pushTransaction(signRtxBean)
                     .get();
             if (response.getCode() == SUCCEED_CODE) {
                 txId = response.getData();
@@ -270,18 +272,19 @@ public class OmniRpcClient {
      * @return 交易哈希
      * @throws Exception
      */
-    public String createUsdtTransaction(ECKey fromKey, String from, String to, CurrencyID currencyID, BigDecimal amount) {
+    public PushSignRtxBean createUsdtTransaction(ECKey fromKey, String from, String to, CurrencyID currencyID, BigDecimal amount) {
         try {
             System.out.println("创建一笔OMNI交易");
             //从rpc服务器获取未签名的交易
-            OmniResponse<RawTransaction> response = service.createUsdtTransaction(new RequestCreateUnSignRtxBean(from,
+            OmniResponse<RawTransaction> response = service.createUsdtTransaction(new RequestUnSignRtxBean(from,
                     to, currencyID.getValue(), amount.toPlainString())).get();
             if (response.getCode() == SUCCEED_CODE) {
                 RawTransaction rawTransaction = response.getData();
+                String oTxId = response.getMsg();
                 System.out.println("签名前：" + rawTransaction.toString());
                 String txHash = signTransactionByKey(fromKey, rawTransaction);
                 System.out.println("\n\n哈希值：" + txHash);
-                return txHash;
+                return new PushSignRtxBean(txHash, oTxId);
             } else {
                 log.info(response.getMsg());
             }
@@ -301,18 +304,21 @@ public class OmniRpcClient {
      * @return 交易哈希
      * @throws Exception
      */
-    public String createBtcTransaction(ECKey fromKey, String from, String to, BigDecimal amount) {
+    public PushSignRtxBean createBtcTransaction(ECKey fromKey, String from, String to, BigDecimal amount) {
         try {
             System.out.println("创建一笔BTC交易");
             //从rpc服务器获取未签名的交易
-            OmniResponse<RawTransaction> response = service.createBtcTransaction(new RequestCreateUnSignRtxBean(from,
+            OmniResponse<RawTransaction> response = service.createBtcTransaction(new RequestUnSignRtxBean(from,
                     to, 0, amount.toPlainString())).get();
             if (response.getCode() == SUCCEED_CODE) {
                 RawTransaction rawTransaction = response.getData();
+                //原始交易id
+                String oTxId = response.getMsg();
                 System.out.println("签名前：" + rawTransaction.toString());
+                //签名交易
                 String txHash = signTransactionByKey(fromKey, rawTransaction);
                 System.out.println("\n哈希值：" + txHash);
-                return txHash;
+                return new PushSignRtxBean(txHash, oTxId);
             } else {
                 log.info(response.getMsg());
             }

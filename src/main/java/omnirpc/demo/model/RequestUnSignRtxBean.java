@@ -3,17 +3,17 @@ package omnirpc.demo.model;
 import lombok.Data;
 
 @Data
-public class RequestCreateUnSignRtxBean {
+public class RequestUnSignRtxBean {
     private String from;
     private String to;
     private long currencyId;
 
-    public RequestCreateUnSignRtxBean() {
+    public RequestUnSignRtxBean() {
     }
 
     private String amount;
 
-    public RequestCreateUnSignRtxBean(String from, String to, long currencyId, String amount) {
+    public RequestUnSignRtxBean(String from, String to, long currencyId, String amount) {
         this.from = from;
         this.to = to;
         this.currencyId = currencyId;
