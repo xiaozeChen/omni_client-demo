@@ -8,7 +8,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import omnirpc.demo.model.*;
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.*;
-import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.script.Script;
 import retrofit2.Retrofit;
 import retrofit2.adapter.java8.Java8CallAdapterFactory;
@@ -27,30 +27,48 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class OmniRpcClient {
-    public static final HttpUrl OMNI_RPC_URL = HttpUrl.parse("http://192.168.31.50:8080");
+//    public static final HttpUrl OMNI_RPC_URL = HttpUrl.parse("http://54.183.219.188:8080");
+    public static final HttpUrl OMNI_RPC_URL = HttpUrl.parse("http://127.0.0.1:8080");
     private static final int CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
     private static final int READ_TIMEOUT_MILLIS = 120 * 1000; // 120s (long enough to load USDT rich list)
-    private static final int SUCCEED_CODE = 10000;//成功返回码
+    private static final int SUCCEED_CODE = 200;//成功返回码
     private static OmniRpcClient omniRpcClient;
-    private static MainNetParams netParams;
     private static Retrofit restAdapter;
     private static OmniRpcApi service;
+    private static Context context;
 
     public static void main(String[] args) {
         OmniRpcClient omniRpcClient = OmniRpcClient.getInstance();
-        new Context(netParams);
-        //创建地址
+        context = new Context(new TestNet3Params());
+//        创建地址
+//        privateKey= cVEvEN7WnZLntXZcy5vwpYBEHdFjois3F6MhNSczyacEwVVWRBio
+//        publicKey=   02c7095cc0000dbe686fd33e672371e9e91362d5d515d4f95c09eb54604a798901
+//        Base58=     n3JdaMLzENzbdrPFj82TCN93RuLZhfsFpN
+
+//        privateKey=cPBsqYbo4TEU4rirU2G71M7GpRGMtzVv6ae7uaadBvugutRG9mV3
+//        publicKey=036027e1df89aa706f4ec9e99e9b3bc0e7c1bf6e299b86c63fe7c7a31b7e6991d7
+//        Base58=mrc3dG4L3nApvJ9R3DXd8Usijwu9rUhb3S
+
+//        privateKey=cSzWNyqJftQHkpdwkqMUfPNR8ZgBUEMbaMEzd8TA5wU4Y7yW2vLv
+//        publicKey=02a34f7d7efd3acc1480984321d94bffb88d94cc847cc3ce90b33e35be7bc4bd87
+//        Base58=mxGC1ouHnf2sMkdaKRt85p7ZVawdYcjuXR
+
+//        moneyqMan7uh8FqdCA2BV5yZ8qVrc9ikLP
+
+//
 //        ECKey ecKey = new ECKey();
-//        String privateKey = ecKey.getPrivateKeyAsWiF(netParams);
+//        String privateKey = ecKey.getPrivateKeyAsWiF(context.getParams());
 //        String publicKey = ecKey.getPublicKeyAsHex();
 //        System.out.println("privateKey=" + privateKey);
 //        System.out.println("publicKey=" + publicKey);
-//        Address address = ecKey.toAddress(netParams);
+//        Address address = ecKey.toAddress(context.getParams());
 //        System.out.println("Base58=" + address.toBase58());
         Scanner sc = new Scanner(System.in);
         for (; ; ) {
             System.out.println("请输入要查询的地址");
-            String from = sc.nextLine().trim();
+//            String from = sc.nextLine().trim();
+
+            String from = "n3JdaMLzENzbdrPFj82TCN93RuLZhfsFpN";
             System.out.println("当前usdt余额为：" + omniRpcClient.getBalance(from, 31L).doubleValue());
             System.out.println("当前omni余额为：" + omniRpcClient.getBalance(from, 1).doubleValue());
             System.out.println("当前btc余额为:" + omniRpcClient.getBtcBalance(from).doubleValue());
@@ -59,8 +77,11 @@ public class OmniRpcClient {
             System.out.println("请输入转账金额");
             BigDecimal amount = new BigDecimal(sc.nextLine().trim());
             System.out.println("请输入转出地址私钥");
-            String pk = sc.nextLine().trim();
-            ECKey fromKey = DumpedPrivateKey.fromBase58(netParams, pk).getKey();
+//            String pk = sc.nextLine().trim();
+
+            String pk ="cVEvEN7WnZLntXZcy5vwpYBEHdFjois3F6MhNSczyacEwVVWRBio";
+            ECKey fromKey = DumpedPrivateKey.fromBase58(context.getParams(), pk).getKey();
+//            ECKey fromKey = ECKey.fromPrivate(Base58.decode(pk));
             System.out.println("请输入要转账类型BTC/OMNI");
             String type = sc.nextLine().trim();
             String rawTxStr;
@@ -68,7 +89,7 @@ public class OmniRpcClient {
             if ("BTC".equalsIgnoreCase(type)) {
                 transaction = omniRpcClient.createBtcTransaction(fromKey, from, to, amount);
             } else if ("OMNI".equalsIgnoreCase(type)) {
-                transaction = omniRpcClient.createUsdtTransaction(fromKey, from, to, CurrencyID.of(31), amount);
+                transaction = omniRpcClient.createUsdtTransaction(fromKey, from, to, CurrencyID.of(1), amount);
             } else {
                 System.out.println("别这样让我无所适从。。。。");
                 break;
@@ -95,7 +116,6 @@ public class OmniRpcClient {
     }
 
     private OmniRpcClient(HttpUrl baseURL, boolean debug) {
-        netParams = MainNetParams.get();
         OkHttpClient client = initClient(debug);
         restAdapter = new Retrofit.Builder()
                 .client(client)
@@ -329,7 +349,7 @@ public class OmniRpcClient {
     }
 
     private String signTransactionByKey(ECKey fromKey, RawTransaction rawTransaction) throws Exception {
-        Transaction usdt_tx = new Transaction(netParams);
+        Transaction usdt_tx = new Transaction(context.getParams());
         //签名交易
         List<RawTransaction.Vin> vin = rawTransaction.getVin();
         List<RawTransaction.Vout> vout = rawTransaction.getVout();
@@ -340,14 +360,14 @@ public class OmniRpcClient {
                 usdt_tx.addOutput(Coin.valueOf(new Double(out.getValue() * 1.0E8D).longValue()), script);
             } else {
                 usdt_tx.addOutput(Coin.valueOf(new Double(out.getValue() * 1.0E8D).longValue()),
-                        Address.fromBase58(netParams, out.getScriptPubKey().getAddresses().get(0)));
+                        Address.fromBase58(context.getParams(), out.getScriptPubKey().getAddresses().get(0)));
             }
         }
         for (RawTransaction.Vin in : vin) {
             TxOutPut txOut = getTxOut(in.getTxid(), (long) in.getVout());
             byte[] pubkeyBytes = Utils.HEX.decode(txOut.getScriptPubKey().getHex());
             Script script = new Script(pubkeyBytes);
-            TransactionOutPoint outPoint = new TransactionOutPoint(netParams, in.getVout(), Sha256Hash.wrap(in.getTxid()));
+            TransactionOutPoint outPoint = new TransactionOutPoint(context.getParams(), in.getVout(), Sha256Hash.wrap(in.getTxid()));
             usdt_tx.addSignedInput(outPoint, script, fromKey, Transaction.SigHash.ALL, true);
         }
         usdt_tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);

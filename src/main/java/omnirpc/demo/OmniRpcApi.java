@@ -18,7 +18,7 @@ public interface OmniRpcApi {
      *
      * @return
      */
-    @GET("/omni/getCurrencyList")
+    @GET("/omni/get_currency_list")
     CompletableFuture<OmniResponse<List<SmartPropertyListInfo>>> getChargeHistory();
 
     /**
@@ -27,7 +27,7 @@ public interface OmniRpcApi {
      * @param address
      * @return
      */
-    @GET("/omni/getBtcBalance")
+    @GET("/omni/get_btc_balance")
     CompletableFuture<OmniResponse<CurrencyBean>> getBtcBalance(@Query("address") String address);
 
     /**
@@ -37,7 +37,7 @@ public interface OmniRpcApi {
      * @param currencyId
      * @return
      */
-    @GET("/omni/getBalance")
+    @GET("/omni/get_balance")
     CompletableFuture<OmniResponse<CurrencyBean>> getBalance(@Query("address") String address,
                                                              @Query("currencyId") long currencyId);
 
@@ -48,7 +48,7 @@ public interface OmniRpcApi {
      * @param vOut
      * @return
      */
-    @GET("/omni/getTxOut")
+    @GET("/omni/get_tx_out")
     CompletableFuture<OmniResponse<TxOutPut>> getTxOut(@Query("txId") String txId, @Query("vOut") long vOut);
 
     /**
@@ -57,7 +57,7 @@ public interface OmniRpcApi {
      * @param userCoinAddress
      * @return
      */
-    @POST("/omni/addAddress")
+    @POST("/omni/add_address")
     CompletableFuture<OmniResponse<UserCoinAddress>> addAddress(@Body UserCoinAddress userCoinAddress);
 
     /**
@@ -66,7 +66,7 @@ public interface OmniRpcApi {
      * @param unSignRtxBean
      * @return
      */
-    @POST("/omni/createUsdtTransaction")
+    @POST("/omni/create_usdt_transaction")
     CompletableFuture<OmniResponse<RawTransaction>> createUsdtTransaction(@Body RequestUnSignRtxBean unSignRtxBean);
 
     /**
@@ -75,7 +75,7 @@ public interface OmniRpcApi {
      * @param unSignRtxBean
      * @return
      */
-    @POST("/omni/createBtcTransaction")
+    @POST("/omni/create_btc_transaction")
     CompletableFuture<OmniResponse<RawTransaction>> createBtcTransaction(@Body RequestUnSignRtxBean unSignRtxBean);
 
     /**
@@ -84,7 +84,7 @@ public interface OmniRpcApi {
      * @param signRtxBean
      * @return
      */
-    @POST("/omni/pushTransaction")
+    @POST("/omni/push_transaction")
     CompletableFuture<OmniResponse<String>> pushTransaction(@Body PushSignRtxBean signRtxBean);
 
 

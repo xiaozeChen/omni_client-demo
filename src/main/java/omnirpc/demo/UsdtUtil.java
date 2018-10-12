@@ -6,8 +6,7 @@ public class UsdtUtil {
     static final byte[] HEX_TABLE = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     static final char[] HEX_CHAR_TABLE = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-    public static String toHexString(byte[] data)
-            throws Exception {
+    public static String toHexString(byte[] data) {
         if ((data == null) || (data.length == 0)) {
             return null;
         }
