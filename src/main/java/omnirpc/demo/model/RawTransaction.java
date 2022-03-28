@@ -15,7 +15,12 @@ public class RawTransaction {
      * version : 1
      * locktime : 0
      * vin : [{"txid":"e2fa18cd1c3a9eeb02de91bdc9bd34dd0c9a3fe9838400dbea7ea60eaa6cc62f","vout":8,"scriptSig":{"asm":"","hex":""},"sequence":4294967295}]
-     * vout : [{"value":0.29947194,"n":0,"scriptPubKey":{"asm":"OP_DUP OP_HASH160 4e5e12b2553f56a7c39fee1278393b164e941e3e OP_EQUALVERIFY OP_CHECKSIG","hex":"76a9144e5e12b2553f56a7c39fee1278393b164e941e3e88ac","reqSigs":1,"type":"pubkeyhash","addresses":["189NQGm8fLTNmuBuY3pKpmJzx883fFwcJG"]}},{"value":0,"n":1,"scriptPubKey":{"asm":"OP_RETURN 6f6d6e69000000000000001f0000000005f5e100","hex":"6a146f6d6e69000000000000001f0000000005f5e100","type":"nulldata"}},{"value":5.46E-6,"n":2,"scriptPubKey":{"asm":"OP_DUP OP_HASH160 36c199f4fe8e70d422e426785b441d2d29ccb1c6 OP_EQUALVERIFY OP_CHECKSIG","hex":"76a91436c199f4fe8e70d422e426785b441d2d29ccb1c688ac","reqSigs":1,"type":"pubkeyhash","addresses":["15zXR28oWzpy3fuFxJQGNBK1FhfUa4tFAh"]}}]
+     * vout : [{"value":0.29947194,"n":0,"scriptPubKey":{"asm":"OP_DUP OP_HASH160 4e5e12b2553f56a7c39fee1278393b164e941e3e OP_EQUALVERIFY OP_CHECKSIG",
+     * "hex":"76a9144e5e12b2553f56a7c39fee1278393b164e941e3e88ac","reqSigs":1,"type":"pubkeyhash",
+     * "addresses":["189NQGm8fLTNmuBuY3pKpmJzx883fFwcJG"]}},{"value":0,"n":1,"scriptPubKey":{"asm":"OP_RETURN 6f6d6e69000000000000001f0000000005f5e100",
+     * "hex":"6a146f6d6e69000000000000001f0000000005f5e100","type":"nulldata"}},
+     * {"value":5.46E-6,"n":2,"scriptPubKey":{"asm":"OP_DUP OP_HASH160 36c199f4fe8e70d422e426785b441d2d29ccb1c6 OP_EQUALVERIFY OP_CHECKSIG",
+     * "hex":"76a91436c199f4fe8e70d422e426785b441d2d29ccb1c688ac","reqSigs":1,"type":"pubkeyhash","addresses":["15zXR28oWzpy3fuFxJQGNBK1FhfUa4tFAh"]}}]
      */
 
     private String txid;

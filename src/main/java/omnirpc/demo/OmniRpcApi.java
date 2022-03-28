@@ -1,10 +1,8 @@
 package omnirpc.demo;
 
-import foundation.omni.rpc.SmartPropertyListInfo;
 import omnirpc.demo.model.*;
 import retrofit2.http.*;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -12,14 +10,6 @@ import java.util.concurrent.CompletableFuture;
  * @date 2018/8/28
  */
 public interface OmniRpcApi {
-
-    /**
-     * 获取omni协议上的币种列表
-     *
-     * @return
-     */
-    @GET("/omni/get_currency_list")
-    CompletableFuture<OmniResponse<List<SmartPropertyListInfo>>> getChargeHistory();
 
     /**
      * 获取btc余额
